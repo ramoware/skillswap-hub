@@ -1,0 +1,63 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String
+  passwordHash  String
+  bio           String?
+  linkedIn      String?
+  github        String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  skillsOffered Skill[]   @relation("SkillsOffered")
+  skillsWanted  Skill[]   @relation("SkillsWanted")
+  sessionsHost  Session[] @relation("SessionHost")
+  sessionsJoin  Session[] @relation("SessionParticipant")
+}
+
+model Skill {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  category    String
+  level       String
+  type        String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  userId      String
+  user        User     @relation("SkillsOffered", fields: [userId], references: [id], onDelete: Cascade)
+  
+  wantedBy    User[]   @relation("SkillsWanted")
+  sessions    Session[]
+}
+
+model Session {
+  id              String   @id @default(cuid())
+  title           String
+  description     String
+  date            DateTime
+  duration        Int
+  mode            String
+  status          String   @default("scheduled")
+  maxParticipants Int      @default(5)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  hostId      String
+  host        User     @relation("SessionHost", fields: [hostId], references: [id], onDelete: Cascade)
+  
+  skillId     String
+  skill       Skill    @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  
+  participants User[]  @relation("SessionParticipant")
+}
