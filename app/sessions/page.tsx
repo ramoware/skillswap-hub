@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Calendar, Clock, Users, MapPin, Video, Trash2 } from 'lucide-react';
+import { Calendar, Clock, Users, MapPin, Video, Trash2, Play } from 'lucide-react';
+import LiveSession from '@/components/LiveSession';
 
 interface Session {
   id: string;
@@ -15,12 +16,14 @@ interface Session {
   status: string;
   host: { id: string; name: string };
   skill: { title: string; category: string };
-  participants: { id: string; name: string }[];
+  participants: { id: string; user: { id: string; name: string } }[];
+  joinLink?: string;
 }
 
 export default function SessionsPage() {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
+  const [liveSessionId, setLiveSessionId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchSessions();
@@ -49,6 +52,30 @@ export default function SessionsPage() {
     } catch (error) {
       console.error('Delete error:', error);
     }
+  };
+
+  const handleJoinSession = async (sessionId: string) => {
+    try {
+      const res = await fetch('/api/sessions/join', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId }),
+      });
+      
+      if (res.ok) {
+        // Refresh sessions to show updated participant count
+        fetchSessions();
+      } else {
+        alert('Failed to join session');
+      }
+    } catch (error) {
+      console.error('Join error:', error);
+      alert('An error occurred while joining the session');
+    }
+  };
+
+  const startLiveSession = (sessionId: string) => {
+    setLiveSessionId(sessionId);
   };
 
   if (loading) {
@@ -129,14 +156,43 @@ export default function SessionsPage() {
                   </span>
                 </div>
 
-                <div className="text-sm text-gray-500">
+                <div className="text-sm text-gray-500 mb-4">
                   Hosted by <span className="font-medium">{session.host.name}</span>
+                </div>
+
+                <div className="flex gap-2">
+                  {session.mode === 'online' && (
+                    <button
+                      onClick={() => startLiveSession(session.id)}
+                      className="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 flex items-center justify-center gap-2 text-sm"
+                    >
+                      <Play className="w-4 h-4" />
+                      Start Live Session
+                    </button>
+                  )}
+                  <button
+                    onClick={() => handleJoinSession(session.id)}
+                    className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2 text-sm"
+                  >
+                    <Users className="w-4 h-4" />
+                    Join Session
+                  </button>
                 </div>
               </div>
             ))}
           </div>
         )}
       </div>
+
+    {/* Live Session Modal */}
+    {liveSessionId && (
+      <LiveSession
+        sessionId={liveSessionId}
+        userName="User" // In a real app, get this from auth context
+        isHost={sessions.find(s => s.id === liveSessionId)?.hostId === 'current-user-id'} // Check if current user is host
+        onClose={() => setLiveSessionId(null)}
+      />
+    )}
     </div>
   );
 }

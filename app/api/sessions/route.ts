@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
     if (userId) {
       where.OR = [
         { hostId: userId },
-        { participants: { some: { id: userId } } },
+        { participants: { some: { userId: userId } } },
       ];
     }
 
@@ -32,7 +32,11 @@ export async function GET(request: NextRequest) {
       include: {
         host: { select: { id: true, name: true, email: true } },
         skill: true,
-        participants: { select: { id: true, name: true } },
+        participants: { 
+          include: {
+            user: { select: { id: true, name: true } }
+          }
+        },
       },
       orderBy: { date: 'desc' },
     });
@@ -54,11 +58,14 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const data = sessionSchema.parse(body);
 
+    const sessionDate = new Date(data.date);
     const newSession = await prisma.session.create({
       data: {
         ...data,
-        date: new Date(data.date),
+        date: sessionDate,
+        startTime: sessionDate,
         hostId: session.userId,
+        joinLink: data.mode === 'online' ? `https://meet.jit.si/skillswap-${Date.now()}` : '',
       },
       include: {
         host: { select: { id: true, name: true, email: true } },

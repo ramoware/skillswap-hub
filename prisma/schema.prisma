@@ -21,7 +21,29 @@ model User {
   skillsOffered Skill[]   @relation("SkillsOffered")
   skillsWanted  Skill[]   @relation("SkillsWanted")
   sessionsHost  Session[] @relation("SessionHost")
-  sessionsJoin  Session[] @relation("SessionParticipant")
+  sessionsJoin  Participant[] @relation("SessionParticipant")
+  sentRequests  ConnectionRequest[] @relation("SentRequests")
+  receivedRequests ConnectionRequest[] @relation("ReceivedRequests")
+}
+
+enum SessionStatus {
+  SCHEDULED
+  LIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum ParticipantRole {
+  ATTENDEE
+  SPEAKER
+  MODERATOR
+}
+
+enum ConnectionStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  CANCELLED
 }
 
 model Skill {
@@ -39,25 +61,52 @@ model Skill {
   
   wantedBy    User[]   @relation("SkillsWanted")
   sessions    Session[]
+  connectionRequests ConnectionRequest[]
 }
 
 model Session {
   id              String   @id @default(cuid())
   title           String
-  description     String
+  description     String?
+  skillId         String
+  skill           Skill    @relation(fields: [skillId], references: [id], onDelete: Cascade)
   date            DateTime
   duration        Int
-  mode            String
-  status          String   @default("scheduled")
+  mode            String   @default("online")
   maxParticipants Int      @default(5)
+  startTime       DateTime
+  endTime         DateTime?
+  hostId          String
+  host            User     @relation("SessionHost", fields: [hostId], references: [id], onDelete: Cascade)
+  joinLink        String?  @default("")
+  status          SessionStatus @default(SCHEDULED)
+  participants    Participant[]
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
-  
-  hostId      String
-  host        User     @relation("SessionHost", fields: [hostId], references: [id], onDelete: Cascade)
-  
+}
+
+model Participant {
+  id         String          @id @default(cuid())
+  userId     String
+  user       User            @relation("SessionParticipant", fields: [userId], references: [id], onDelete: Cascade)
+  sessionId  String
+  session    Session         @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  role       ParticipantRole @default(ATTENDEE)
+  joinedAt   DateTime        @default(now())
+}
+
+model ConnectionRequest {
+  id          String           @id @default(cuid())
+  fromUserId  String
+  fromUser    User             @relation("SentRequests", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUserId    String
+  toUser      User             @relation("ReceivedRequests", fields: [toUserId], references: [id], onDelete: Cascade)
   skillId     String
-  skill       Skill    @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  skill       Skill            @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  message     String?
+  status      ConnectionStatus @default(PENDING)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
   
-  participants User[]  @relation("SessionParticipant")
+  @@unique([fromUserId, toUserId, skillId])
 }

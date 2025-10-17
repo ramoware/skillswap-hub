@@ -1,9 +1,16 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@400;500;600;700;800;900&display=swap');
 
-/* --- Base Theme Variables --- */
+/* --- Premium Design System - Inspired by TalentPrecision AI --- */
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --luxury-primary: #16a34a;
+  --luxury-secondary: #1e293b;
+  --luxury-accent: #f2850a;
+  --luxury-neutral: #64748b;
+  --luxury-bg: #f8fafc;
+  --luxury-surface: #ffffff;
 }
 
 /* --- Define Tailwind Theme Variables --- */
@@ -11,16 +18,24 @@
   :root {
     --color-background: var(--background);
     --color-foreground: var(--foreground);
-    --font-sans: var(--font-geist-sans, Arial, Helvetica, sans-serif);
+    --font-sans: var(--font-geist-sans, 'Inter', Arial, Helvetica, sans-serif);
     --font-mono: var(--font-geist-mono, monospace);
   }
 
-  /* --- Better Readability --- */
+  /* --- Premium Body Styling --- */
   body {
-    background-color: var(--color-background);
+    background: #f8fafc;
     color: var(--color-foreground);
-    font-family: var(--font-sans);
+    font-family: 'Inter', var(--font-sans);
     line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* Premium Typography */
+  .luxury-heading {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    color: #16a34a;
   }
 
   /* Make subtle text still readable */
@@ -31,7 +46,103 @@
   @media (prefers-color-scheme: dark) {
     :root {
       --background: #0a0a0a;
-      --foreground: #f2f2f2; /* brighter than #ededed */
+      --foreground: #f2f2f2;
+      --luxury-bg: #0f172a;
+      --luxury-surface: #1e293b;
+    }
+    
+    body {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
     }
   }
+}
+
+/* --- Premium Components --- */
+@layer components {
+  .luxury-card {
+    @apply bg-white border border-gray-200 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105;
+  }
+  
+  .luxury-button {
+    @apply bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-300;
+  }
+  
+  .luxury-input {
+    @apply bg-white border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-300 shadow-sm hover:shadow-md;
+  }
+  
+  .premium-card {
+    @apply bg-slate-800 text-white border border-slate-700 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300;
+  }
+  
+  .accent-button {
+    @apply bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-300;
+  }
+  
+  .text-gradient {
+    color: #16a34a;
+    font-weight: 600;
+  }
+  
+  .shadow-luxury {
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  }
+  
+  .shadow-glow {
+    box-shadow: 0 0 20px rgba(22, 163, 74, 0.3);
+  }
+}
+
+/* --- Luxury Animations --- */
+@layer utilities {
+  @keyframes luxuryFloat {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+  }
+  
+  @keyframes luxurySlideIn {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .animate-luxury-float {
+    animation: luxuryFloat 3s ease-in-out infinite;
+  }
+  
+  .animate-luxury-slide-in {
+    animation: luxurySlideIn 0.6s ease-out;
+  }
+  
+  .transition-luxury {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .transition-bounce {
+    transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  }
+}
+
+/* --- Luxury Scrollbar --- */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #0ea5e9 0%, #d946ef 100%);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #0284c7 0%, #c026d3 100%);
 }

@@ -17,10 +17,11 @@ export default function NewSessionPage() {
     skillId: '',
     date: '',
     duration: 60,
-    mode: 'online',
+    mode: 'online' as 'online' | 'in-person',
     maxParticipants: 5,
   });
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const router = useRouter();
 
   useEffect(() => {
@@ -28,14 +29,38 @@ export default function NewSessionPage() {
   }, []);
 
   const fetchSkills = async () => {
-    const res = await fetch('/api/skills?type=offer');
-    const data = await res.json();
-    setSkills(data);
+    try {
+      const res = await fetch('/api/skills?type=offer');
+      const data = await res.json();
+      setSkills(data);
+    } catch (error) {
+      console.error('Failed to fetch skills:', error);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError('');
+
+    // Validate required fields
+    if (!formData.title || !formData.description || !formData.skillId || !formData.date) {
+      setError('Please fill in all required fields');
+      setLoading(false);
+      return;
+    }
+
+    if (formData.title.length < 3) {
+      setError('Session title must be at least 3 characters long');
+      setLoading(false);
+      return;
+    }
+
+    if (formData.description.length < 10) {
+      setError('Description must be at least 10 characters long');
+      setLoading(false);
+      return;
+    }
 
     try {
       const res = await fetch('/api/sessions', {
@@ -46,9 +71,13 @@ export default function NewSessionPage() {
 
       if (res.ok) {
         router.push('/sessions');
+      } else {
+        const data = await res.json();
+        setError(data.error || 'Failed to create session');
       }
     } catch (error) {
       console.error('Error:', error);
+      setError('An error occurred while creating the session');
     } finally {
       setLoading(false);
     }
@@ -59,6 +88,12 @@ export default function NewSessionPage() {
       <div className="max-w-2xl mx-auto px-4">
         <div className="bg-white p-8 rounded-lg shadow-lg">
           <h1 className="text-3xl font-bold mb-6">Create Learning Session</h1>
+
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg mb-6">
+              {error}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
@@ -99,12 +134,13 @@ export default function NewSessionPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium mb-2">Date</label>
+                <label className="block text-sm font-medium mb-2">Date & Time</label>
                 <input
                   type="datetime-local"
                   value={formData.date}
                   onChange={(e) => setFormData({...formData, date: e.target.value})}
                   className="w-full px-4 py-2 border rounded-lg"
+                  min={new Date().toISOString().slice(0, 16)}
                   required
                 />
               </div>

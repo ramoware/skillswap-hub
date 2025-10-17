@@ -21,7 +21,7 @@ export async function GET() {
         where: { hostId: session.userId } 
       }),
       prisma.session.count({ 
-        where: { participants: { some: { id: session.userId } } } 
+        where: { participants: { some: { userId: session.userId } } } 
       }),
       prisma.skill.findMany({
         where: { userId: session.userId },

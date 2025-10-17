@@ -35,8 +35,8 @@ export default function NewSkillPage() {
         const data = await res.json();
         setError(data.error || 'Failed to create skill');
       }
-    } catch (err) {
-      console.error('Failed to add skill');
+    } catch (error) {
+      console.error('Failed to add skill:', error);
     } finally {
       setLoading(false);
     }

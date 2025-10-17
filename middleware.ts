@@ -12,11 +12,14 @@ export async function middleware(request: NextRequest) {
   const protectedApiRoutes = ['/api/skills', '/api/sessions', '/api/dashboard', '/api/ai'];
   const isProtectedApi = protectedApiRoutes.some(route => pathname.startsWith(route));
   
+  // Allow public access to skills API for fetching available skills
+  const isPublicSkillsApi = pathname.startsWith('/api/skills') && request.nextUrl.searchParams.get('type') === 'offer';
+  
   const protectedPages = ['/dashboard', '/skills', '/sessions', '/matches', '/profile'];
   const isProtectedPage = protectedPages.some(route => pathname.startsWith(route));
   
-  if ((isProtectedPage || isProtectedApi) && !token) {
-    if (isProtectedApi) {
+  if ((isProtectedPage || (isProtectedApi && !isPublicSkillsApi)) && !token) {
+    if (isProtectedApi && !isPublicSkillsApi) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     return NextResponse.redirect(new URL('/login', request.url));
@@ -25,8 +28,8 @@ export async function middleware(request: NextRequest) {
   if (token) {
     const payload = await verifyToken(token);
     
-    if (!payload && (isProtectedPage || isProtectedApi)) {
-      if (isProtectedApi) {
+    if (!payload && (isProtectedPage || (isProtectedApi && !isPublicSkillsApi))) {
+      if (isProtectedApi && !isPublicSkillsApi) {
         return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
       }
       const response = NextResponse.redirect(new URL('/login', request.url));
